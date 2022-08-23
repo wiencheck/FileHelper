@@ -3,15 +3,11 @@ import Foundation
 public class FileHelper {
     
     /// Returns URL constructed from specified directory
-    public class func getURL(for directory: FileManager.SearchPathDirectory, folder: String? = nil, filename: String? = nil, fileExtension: String? = nil) -> URL {
-        guard var url = FileManager.default.urls(for: directory,
-                                                 in: .userDomainMask).first else {
-            fatalError("Could not create URL for specified directory!")
-        }
-        
-        if let folder = folder {
-            url.appendPathComponent(folder, isDirectory: true)
-        }
+    public class func getURL(for directory: Directory,
+                             filename: String? = nil,
+                             fileExtension: String? = nil) -> URL {
+        var url = directory.url
+
         if let filename = filename {
             url.appendPathComponent(filename, isDirectory: false)
         }
@@ -30,16 +26,15 @@ public class FileHelper {
     
     @discardableResult
     public class func store<T: Encodable>(_ object: T,
-                                    to directory: FileManager.SearchPathDirectory,
-                                    folder: String? = nil,
+                                    to directory: Directory,
                                     as filename: String,
                                     fileExtension: String? = nil) throws -> URL {
         var url = getURL(for: directory)
-        if let folder = folder {
-            url.appendPathComponent(folder, isDirectory: true)
+        
+        if directory.folder != nil {
             if !FileManager.default.fileExists(atPath: url.path) {
-                try FileManager.default.createDirectory(atPath: url.path, withIntermediateDirectories: false)
-                print("Created folder named \(folder)")
+                try FileManager.default.createDirectory(atPath: url.path,
+                                                        withIntermediateDirectories: false)
             }
         }
         url.appendPathComponent(filename)
@@ -70,10 +65,11 @@ public class FileHelper {
     ///   - type: struct type (i.e. Message.self)
     /// - Returns: decoded struct model(s) of data
     public class func retrieve<T: Decodable>(_ filename: String,
-                                       folder: String? = nil,
                                        fileExtension: String? = nil,
-                                       from directory: FileManager.SearchPathDirectory) -> T? {
-        let url = getURL(for: directory, folder: folder, filename: filename, fileExtension: fileExtension)
+                                       from directory: Directory) -> T? {
+        let url = getURL(for: directory,
+                         filename: filename,
+                         fileExtension: fileExtension)
         
         guard let data = FileManager.default.contents(atPath: url.path) else {
             return nil
@@ -93,9 +89,8 @@ public class FileHelper {
     }
     
     /// Remove all files at specified directory
-    public class func clear(_ directory: FileManager.SearchPathDirectory,
-                            folder: String? = nil) throws {
-        let url = getURL(for: directory, folder: folder)
+    public class func clear(_ directory: Directory) throws {
+        let url = getURL(for: directory)
         
         var isFolder = ObjCBool(false)
         guard FileManager.default.fileExists(atPath: url.path, isDirectory: &isFolder) else {
@@ -106,7 +101,9 @@ public class FileHelper {
             try FileManager.default.removeItem(atPath: url.path)
         }
         else {
-            let contents = try FileManager.default.contentsOfDirectory(at: url, includingPropertiesForKeys: nil, options: [])
+            let contents = try FileManager.default.contentsOfDirectory(at: url,
+                                                                       includingPropertiesForKeys: nil,
+                                                                       options: [])
             for fileUrl in contents {
                 try FileManager.default.removeItem(at: fileUrl)
             }
@@ -115,11 +112,9 @@ public class FileHelper {
     
     /// Remove specified file from specified directory
     public class func remove(_ filename: String,
-                             folder: String? = nil,
                              fileExtension: String? = nil,
-                             from directory: FileManager.SearchPathDirectory) throws {
+                             from directory: Directory) throws {
         let url = getURL(for: directory,
-                         folder: folder,
                          filename: filename,
                          fileExtension: fileExtension)
         guard FileManager.default.fileExists(atPath: url.path) else {
@@ -131,19 +126,17 @@ public class FileHelper {
     
     /// Returns BOOL indicating whether file exists at specified directory with specified file name
     public class func fileExists(_ filename: String,
-                                 folder: String? = nil,
                                  fileExtension: String? = nil,
-                                 in directory: FileManager.SearchPathDirectory) -> Bool {
+                                 in directory: Directory) -> Bool {
         let url = getURL(for: directory,
-                         folder: folder,
                          filename: filename,
                          fileExtension: fileExtension)
         return FileManager.default.fileExists(atPath: url.path)
     }
     
     public class func directoryExists(_ name: String,
-                                      in directory: FileManager.SearchPathDirectory) -> (exists: Bool, isEmpty: Bool?) {
-        let url = getURL(for: directory, folder: name)
+                                      in directory: Directory) -> (exists: Bool, isEmpty: Bool?) {
+        let url = getURL(for: directory)
         var isFolder = ObjCBool(false)
         guard FileManager.default.fileExists(atPath: url.path, isDirectory: &isFolder),
               isFolder.boolValue,
@@ -153,9 +146,8 @@ public class FileHelper {
         return (true, contents.isEmpty)
     }
     
-    public class func getContents(ofDirectory directory: FileManager.SearchPathDirectory,
-                                  folder: String? = nil) throws -> [URL] {
-        let url = getURL(for: directory, folder: folder)
+    public class func getContents(ofDirectory directory: Directory) throws -> [URL] {
+        let url = getURL(for: directory)
         return try FileManager.default.contentsOfDirectory(at: url, includingPropertiesForKeys: nil)
     }
     
