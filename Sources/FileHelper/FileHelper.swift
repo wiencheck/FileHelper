@@ -134,9 +134,9 @@ public class FileHelper {
         return FileManager.default.fileExists(atPath: url.path)
     }
     
-    public class func directoryExists(_ name: String,
-                                      in directory: Directory) -> (exists: Bool, isEmpty: Bool?) {
+    public class func directoryExists(_ directory: Directory) -> (exists: Bool, isEmpty: Bool?) {
         let url = getURL(for: directory)
+        
         var isFolder = ObjCBool(false)
         guard FileManager.default.fileExists(atPath: url.path, isDirectory: &isFolder),
               isFolder.boolValue,

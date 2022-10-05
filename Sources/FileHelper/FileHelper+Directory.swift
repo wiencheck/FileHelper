@@ -35,16 +35,10 @@ public extension FileHelper {
 
 public extension FileHelper.Directory {
     
-    static func documents(folder: String? = nil) -> Self {
-        return .init(rootDirectory: .documentDirectory, folder: folder)
-    }
+    static let documents: Self = .init(rootDirectory: .documentDirectory)
     
-    static func applicationSupport(folder: String? = nil) -> Self {
-        return .init(rootDirectory: .applicationSupportDirectory, folder: folder)
-    }
+    static let applicationSupport: Self = .init(rootDirectory: .applicationSupportDirectory)
     
-    static func caches(folder: String? = nil) -> Self {
-        return .init(rootDirectory: .cachesDirectory, folder: folder)
-    }
+    static let caches: Self = .init(rootDirectory: .cachesDirectory)
     
 }
