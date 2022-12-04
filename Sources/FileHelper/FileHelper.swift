@@ -34,7 +34,7 @@ public class FileHelper {
         if directory.folder != nil {
             if !FileManager.default.fileExists(atPath: url.path) {
                 try FileManager.default.createDirectory(atPath: url.path,
-                                                        withIntermediateDirectories: false)
+                                                        withIntermediateDirectories: true)
             }
         }
         url.appendPathComponent(filename)
