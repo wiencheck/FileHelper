@@ -3,11 +3,13 @@ import Foundation
 public class FileHelper {
     
     /// Returns URL constructed from specified directory
-    public class func getURL(for directory: Directory,
-                             filename: String? = nil,
-                             fileExtension: String? = nil) -> URL {
+    public class func getURL(
+        for directory: Directory,
+        filename: String? = nil,
+        fileExtension: String? = nil
+    ) -> URL {
         var url = directory.url
-
+        
         if let filename = filename {
             url.appendPathComponent(filename, isDirectory: false)
         }
@@ -16,7 +18,7 @@ public class FileHelper {
         }
         return url
     }
-        
+    
     /// Store an encodable struct to the specified directory on disk
     ///
     /// - Parameters:
@@ -25,10 +27,13 @@ public class FileHelper {
     ///   - filename: what to name the file where the struct data will be stored
     
     @discardableResult
-    public class func store<T: Encodable>(_ object: T,
-                                    to directory: Directory,
-                                    as filename: String,
-                                    fileExtension: String? = nil) throws -> URL {
+    public class func store<T: Encodable>(
+        _ object: T,
+        to directory: Directory,
+        as filename: String,
+        fileExtension: String? = nil,
+        using encoder: any EncoderProtocol
+    ) throws -> URL {
         var url = getURL(for: directory)
         
         if directory.folder != nil {
@@ -47,7 +52,7 @@ public class FileHelper {
             data = object as! Data
         }
         else {
-            data = try JSONEncoder().encode(object)
+            data = try encoder.encode(object)
         }
         if FileManager.default.fileExists(atPath: url.path) {
             try FileManager.default.removeItem(at: url)
@@ -64,9 +69,12 @@ public class FileHelper {
     ///   - directory: FileManager.SearchPathDirectory where struct data is stored
     ///   - type: struct type (i.e. Message.self)
     /// - Returns: decoded struct model(s) of data
-    public class func retrieve<T: Decodable>(_ filename: String,
-                                       fileExtension: String? = nil,
-                                       from directory: Directory) -> T? {
+    public class func retrieve<T: Decodable>(
+        _ filename: String,
+        fileExtension: String? = nil,
+        from directory: Directory,
+        using decoder: any DecoderProtocol = JSONDecoder()
+    ) -> T? {
         let url = getURL(for: directory,
                          filename: filename,
                          fileExtension: fileExtension)
@@ -78,7 +86,6 @@ public class FileHelper {
         if T.self == Data.self {
             return data as? T
         }
-        let decoder = JSONDecoder()
         do {
             let model = try decoder.decode(T.self, from: data)
             return model
@@ -89,7 +96,9 @@ public class FileHelper {
     }
     
     /// Remove all files at specified directory
-    public class func clear(_ directory: Directory) throws {
+    public class func clear(
+        _ directory: Directory
+    ) throws {
         let url = getURL(for: directory)
         
         var isFolder = ObjCBool(false)
@@ -111,9 +120,11 @@ public class FileHelper {
     }
     
     /// Remove specified file from specified directory
-    public class func remove(_ filename: String,
-                             fileExtension: String? = nil,
-                             from directory: Directory) throws {
+    public class func remove(
+        _ filename: String,
+        fileExtension: String? = nil,
+        from directory: Directory
+    ) throws {
         let url = getURL(for: directory,
                          filename: filename,
                          fileExtension: fileExtension)
@@ -125,16 +136,20 @@ public class FileHelper {
     }
     
     /// Returns BOOL indicating whether file exists at specified directory with specified file name
-    public class func fileExists(_ filename: String,
-                                 fileExtension: String? = nil,
-                                 in directory: Directory) -> Bool {
+    public class func fileExists(
+        _ filename: String,
+        fileExtension: String? = nil,
+        in directory: Directory
+    ) -> Bool {
         let url = getURL(for: directory,
                          filename: filename,
                          fileExtension: fileExtension)
         return FileManager.default.fileExists(atPath: url.path)
     }
     
-    public class func directoryExists(_ directory: Directory) -> (exists: Bool, isEmpty: Bool?) {
+    public class func directoryExists(
+        _ directory: Directory
+    ) -> (exists: Bool, isEmpty: Bool?) {
         let url = getURL(for: directory)
         
         var isFolder = ObjCBool(false)
@@ -146,7 +161,9 @@ public class FileHelper {
         return (true, contents.isEmpty)
     }
     
-    public class func getContents(ofDirectory directory: Directory) throws -> [URL] {
+    public class func getContents(
+        ofDirectory directory: Directory
+    ) throws -> [URL] {
         let url = getURL(for: directory)
         return try FileManager.default.contentsOfDirectory(at: url, includingPropertiesForKeys: nil)
     }
