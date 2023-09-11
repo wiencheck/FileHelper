@@ -32,14 +32,16 @@ public class FileHelper {
         to directory: Directory,
         as filename: String,
         fileExtension: String? = nil,
-        using encoder: any EncoderProtocol
+        using encoder: any EncoderProtocol = JSONEncoder()
     ) throws -> URL {
         var url = getURL(for: directory)
         
         if directory.folder != nil {
             if !FileManager.default.fileExists(atPath: url.path) {
-                try FileManager.default.createDirectory(atPath: url.path,
-                                                        withIntermediateDirectories: true)
+                try FileManager.default.createDirectory(
+                    atPath: url.path,
+                    withIntermediateDirectories: true
+                )
             }
         }
         url.appendPathComponent(filename)
@@ -57,7 +59,10 @@ public class FileHelper {
         if FileManager.default.fileExists(atPath: url.path) {
             try FileManager.default.removeItem(at: url)
         }
-        FileManager.default.createFile(atPath: url.path, contents: data)
+        FileManager.default.createFile(
+            atPath: url.path,
+            contents: data
+        )
         
         return url
     }
@@ -75,9 +80,11 @@ public class FileHelper {
         from directory: Directory,
         using decoder: any DecoderProtocol = JSONDecoder()
     ) -> T? {
-        let url = getURL(for: directory,
-                         filename: filename,
-                         fileExtension: fileExtension)
+        let url = getURL(
+            for: directory,
+            filename: filename,
+            fileExtension: fileExtension
+        )
         
         guard let data = FileManager.default.contents(atPath: url.path) else {
             return nil
@@ -102,7 +109,10 @@ public class FileHelper {
         let url = getURL(for: directory)
         
         var isFolder = ObjCBool(false)
-        guard FileManager.default.fileExists(atPath: url.path, isDirectory: &isFolder) else {
+        guard FileManager.default.fileExists(
+            atPath: url.path,
+            isDirectory: &isFolder
+        ) else {
             print("Path does not exist")
             return
         }
@@ -110,9 +120,11 @@ public class FileHelper {
             try FileManager.default.removeItem(atPath: url.path)
         }
         else {
-            let contents = try FileManager.default.contentsOfDirectory(at: url,
-                                                                       includingPropertiesForKeys: nil,
-                                                                       options: [])
+            let contents = try FileManager.default.contentsOfDirectory(
+                at: url,
+                includingPropertiesForKeys: nil,
+                options: []
+            )
             for fileUrl in contents {
                 try FileManager.default.removeItem(at: fileUrl)
             }
@@ -153,9 +165,15 @@ public class FileHelper {
         let url = getURL(for: directory)
         
         var isFolder = ObjCBool(false)
-        guard FileManager.default.fileExists(atPath: url.path, isDirectory: &isFolder),
+        guard FileManager.default.fileExists(
+            atPath: url.path,
+            isDirectory: &isFolder
+        ),
               isFolder.boolValue,
-              let contents = try? FileManager.default.contentsOfDirectory(at: url, includingPropertiesForKeys: nil) else {
+              let contents = try? FileManager.default.contentsOfDirectory(
+                at: url,
+                includingPropertiesForKeys: nil
+              ) else {
             return (false, nil)
         }
         return (true, contents.isEmpty)
